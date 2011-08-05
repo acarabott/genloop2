@@ -1,5 +1,5 @@
 (
-~filepath = "sounds/drumLoop.wav";
+~filepath = "sounds/champagne.aif";
 ~scmir = SCMIRAudioFile(~filepath);
 
 
@@ -73,4 +73,40 @@ w = SCWindow.new("soundfile test", Rect(20, 200, 900, 400)).front;
        
 };
 
-)
+~sfView.setEditableSelectionStart(0, false);
+~sfView.setEditableSelectionSize(0, false);
+
+~sfView.mouseDownAction_({|view, x, y, mod, but, clicks|
+    var pixels, closest, closestIndex, neighbourIndex;
+    var samples, selection;
+    
+    pixels = (~sfViewWidth / ~scmir.duration) * ~scmir.onsetdata;
+    samples = SCMIR.soundfile.sampleRate * ~scmir.onsetdata;
+    
+    closest = x.nearestInList(pixels);
+    closestIndex = pixels.indexOf(closest);
+    selection = Array.newClear(2);
+    
+    if(x > closest) {
+        neighbourIndex = closestIndex + 1;
+    } {
+        neighbourIndex = closestIndex - 1;
+    };
+    
+    
+    switch (neighbourIndex)
+        {-1}  {
+            selection[0] = 0;
+            selection[1] = samples[closestIndex];            
+        }
+        {~scmir.onsetdata.size}  {
+            selection[0] = samples[closestIndex];
+            selection[1] = ~sfile.numFrames;
+        }
+        {neighbourIndex} {
+            selection = [samples[closestIndex], samples[neighbourIndex]].sort;
+        };
+    
+    ~sfView.setSelection(0, [selection[0], selection[1] - selection[0]]);
+    
+});
