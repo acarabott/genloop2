@@ -124,3 +124,7 @@ SynthDef(\SlicePlay) { |buf=0, out=0, start=0, end=44100, fade=0.01|
     );
 }.add;
 
+
+/*
+    TODO Removing onset markers...
+*/
