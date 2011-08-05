@@ -1,0 +1,41 @@
+# Generative Looper 2.0
+
+* Pitch detection for non onset music
+* Volume control over all loops via pedal
+* Switchable onset detector type for different input types
+* Floor control on onset detector
+* Free looping
+* Quantised looping, to bar and beat
+* Automatic quantise on free looping (beat detection)
+* Ultra short looping (delay style)
+* MIDI Control
+* Stop via tap or release
+* Tempo shifting
+* Pitch shifting
+* Insertable FX
+* Generative templates
+* Altering loop lengths, (automated). 5/8 to 6/8.
+* New loops from macro chunks
+* Longer term re-appearance of material
+* Generative music from events *in order*, just giving the notes new rhythms
+
+TODO Solo buttons
+TODO Whole channel solo/mute buttons
+
+FIXME Auto analyse or nil for un-analysed loops
+
+TODO Range settings for automation
+TODO Stop windows from being resizable. Not mixer?
+TODO Alt click reset faders...
+TODO Freedom mode, no quantisation
+
+TODO Proximity cutting
+TODO Loops with tiny variations
+TODO Prevent cuts on top of cuts
+TODO Channels as classes
+TODO Make channels removable
+TODO Improve metering resolution
+FIXME Text metronome SynthDef at various tempos
+
+* View audio / region lengths
+* Snap shop generative ideas for recall
