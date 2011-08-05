@@ -1,7 +1,7 @@
 (
-~filepath = "sounds/champagne.aif";
+~filepath = "sounds/bowed.wav";
 ~scmir = SCMIRAudioFile(~filepath);
-
+~buffer = Buffer.read(s, ~filepath);
 
 w = SCWindow.new("soundfile test", Rect(20, 200, 900, 400)).front;
 ~sfViewOffset = 20;
@@ -76,6 +76,7 @@ w = SCWindow.new("soundfile test", Rect(20, 200, 900, 400)).front;
 ~sfView.setEditableSelectionStart(0, false);
 ~sfView.setEditableSelectionSize(0, false);
 
+
 ~sfView.mouseDownAction_({|view, x, y, mod, but, clicks|
     var pixels, closest, closestIndex, neighbourIndex;
     var samples, selection;
@@ -108,5 +109,18 @@ w = SCWindow.new("soundfile test", Rect(20, 200, 900, 400)).front;
         };
     
     ~sfView.setSelection(0, [selection[0], selection[1] - selection[0]]);
-    
+    Synth(\SlicePlay, [\buf, ~buffer, \start, selection[0], \end, selection[1]]);
 });
+
+)
+
+SynthDef(\SlicePlay) { |buf=0, out=0, start=0, end=44100, fade=0.01|
+    var phase = Phasor.ar(0, BufRateScale.kr(buf), start, end);
+    var sig = BufRd.ar(1, buf, phase, 0);
+    var env = EnvGen.ar(Env.linen(fade, ((end-start)/BufSampleRate.kr(buf)) - (fade * 2), fade, 1), doneAction: 2);
+    
+    Out.ar(out,
+        Pan2.ar(sig*env, 0);
+    );
+}.add;
+
