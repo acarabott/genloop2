@@ -113,3 +113,14 @@ getn
 loadToFloatArray(index, count, action)
 
 Score
+
+Quarks.gui
+
+FeatureSave
+
+Array
+f = File.open("/Applications/SuperCollider/testfile2.data", "r")
+
+f.readAllString.postln;
+
+SCMIR
