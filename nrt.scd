@@ -1,5 +1,16 @@
-(
-~filepath = "sounds/bowed.wav";
+s.waitForBoot({
+    
+SynthDef(\SlicePlay) { |buf=0, out=0, start=0, end=44100, fade=0.01|
+    var phase = Phasor.ar(0, BufRateScale.kr(buf), start, end);
+    var sig = BufRd.ar(1, buf, phase, 0);
+    var env = EnvGen.ar(Env.linen(fade, ((end-start)/BufSampleRate.kr(buf)) - (fade * 2), fade, 1), doneAction: 2);
+
+    Out.ar(out,
+        Pan2.ar(sig*env, 0);
+    );
+}.add;
+
+~filepath = "/Applications/SuperCollider/sounds/amen.wav";
 ~scmir = SCMIRAudioFile(~filepath);
 ~buffer = Buffer.read(s, ~filepath);
 
@@ -14,22 +25,7 @@ w = SCWindow.new("soundfile test", Rect(20, 200, 900, 400)).front;
 ~sfView.soundfile = ~sfile;
 ~sfView.read(0, ~sfile.numFrames);
 
-~slider = EZSlider(w, 
-    Rect(840, 20, 40, 200), 
-    "Thresh",
-    action: {|ez|
-        
-        if(~routine.isPlaying) {
-            ~checkWorking.(ez);
-        };
-        ~doRoutine.(ez);
-        
-    },
-    initVal:0.5,
-    initAction:true,
-    layout:\vert
-);
-~working = false;
+~compensation = 255;
 ~doRoutine = {|ez|
     ~routine = {
         0.2.wait;
@@ -56,13 +52,34 @@ w = SCWindow.new("soundfile test", Rect(20, 200, 900, 400)).front;
     
 };
 
+~slider = EZSlider(w, 
+    Rect(840, 20, 40, 200), 
+    "Thresh",
+    action: {|ez|
+        
+        if(~routine.isPlaying) {
+            ~checkWorking.(ez);
+        };
+        ~doRoutine.(ez);
+        
+    },
+    initVal:0.5,
+    initAction:true,
+    layout:\vert
+);
+~working = false;
+
+~pixels;
 ~drawlines = {
     w.drawHook_({|v|
         Pen.strokeColor = Color.red;
         Pen.width = 2;
-
+        
         ~scmir.onsetdata.do { |item, i|
-            var x = ~sfViewOffset + ((item/~scmir.duration) * ~sfViewWidth);
+            // Compensate for latency of Onsets
+            var val = (((item * ~sfile.sampleRate) - ~compensation ) / ~sfile.sampleRate);
+            var x = ~sfViewOffset + ((val / ~scmir.duration) * ~sfViewWidth);
+
             Pen.moveTo(x@~sfViewOffset);
             Pen.lineTo(x@(~sfViewHeight + ~sfViewOffset));        
         };
@@ -72,10 +89,6 @@ w = SCWindow.new("soundfile test", Rect(20, 200, 900, 400)).front;
     w.refresh;
        
 };
-
-~sfView.setEditableSelectionStart(0, false);
-~sfView.setEditableSelectionSize(0, false);
-
 
 ~sfView.mouseDownAction_({|view, x, y, mod, but, clicks|
     var pixels, closest, closestIndex, neighbourIndex;
@@ -109,22 +122,18 @@ w = SCWindow.new("soundfile test", Rect(20, 200, 900, 400)).front;
         };
     
     ~sfView.setSelection(0, [selection[0], selection[1] - selection[0]]);
-    Synth(\SlicePlay, [\buf, ~buffer, \start, selection[0], \end, selection[1]]);
+    Synth(\SlicePlay, [\buf, ~buffer, \start, selection[0]-~compensation, \end, selection[1]-~compensation]);
 });
 
-)
+})
 
-SynthDef(\SlicePlay) { |buf=0, out=0, start=0, end=44100, fade=0.01|
-    var phase = Phasor.ar(0, BufRateScale.kr(buf), start, end);
-    var sig = BufRd.ar(1, buf, phase, 0);
-    var env = EnvGen.ar(Env.linen(fade, ((end-start)/BufSampleRate.kr(buf)) - (fade * 2), fade, 1), doneAction: 2);
-    
-    Out.ar(out,
-        Pan2.ar(sig*env, 0);
-    );
-}.add;
-
+~buffer.play
 
 /*
     TODO Removing onset markers...
+    TODO zooming and resizing
 */
+
+
+
+
