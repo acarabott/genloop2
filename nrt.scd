@@ -1,3 +1,4 @@
+(
 s.waitForBoot({
     
 SynthDef(\SlicePlay) { |buf=0, out=0, start=0, end=44100, fade=0.01|
@@ -10,18 +11,37 @@ SynthDef(\SlicePlay) { |buf=0, out=0, start=0, end=44100, fade=0.01|
     );
 }.add;
 
-~filepath = "/Applications/SuperCollider/sounds/amen.wav";
-~scmir = SCMIRAudioFile(~filepath);
-~buffer = Buffer.read(s, ~filepath);
-
-w = SCWindow.new("soundfile test", Rect(20, 200, 900, 400)).front;
+// ~mp3path = "/Users/arthurc/Music/iTunes/iTunes\ Music/Acoustic Ladyland/Skinny\ Grin/01\ Road\ Of\ Bones.mp3";
+{
+    // ~buffer = MP3.readToBuffer(s, ~mp3path, action:{
+    //     var split = ~buffer.path.split($.).postln;
+    //     ~tmpPath = split[0] ++ "z." ++ split[1];
+    //     ("cp" + ~buffer.path + ~tmpPath).unixCmd;
+    // });
+    // s.sync;
+    // ~filepath = ~tmpPath;
+    // 
+    // ~scmir = SCMIRAudioFile(~filepath);
+    // s.sync;
+    // ~sfile = SoundFile.new;
+    // ~sfile.openRead(~filepath);
+    // s.sync;
+    
+    ~filepath = "sounds/amen.wav";
+    ~buffer = Buffer.read(s, ~filepath);
+    ~scmir = SCMIRAudioFile(~filepath);
+    ~sfile = SoundFile.new;
+    ~sfile.openRead(~filepath);
+    
+w = Window.new("Slice", Rect(20, 200, 900, 400)).front;
+// w.onClose_({
+//     ("rm" + ~tmpPath).unixCmd;
+// });
 ~sfViewOffset = 20;
 ~sfViewHeight = 200;
 ~sfViewWidth = 800;
-~sfView = SCSoundFileView.new(w, Rect(~sfViewOffset,~sfViewOffset, ~sfViewWidth, ~sfViewHeight));
+~sfView = SoundFileView.new(w, Rect(~sfViewOffset,~sfViewOffset, ~sfViewWidth, ~sfViewHeight));
 ~sfView.gridOn = false;
-~sfile = SoundFile.new;
-~sfile.openRead(~filepath);
 ~sfView.soundfile = ~sfile;
 ~sfView.read(0, ~sfile.numFrames);
 
@@ -124,16 +144,33 @@ w = SCWindow.new("soundfile test", Rect(20, 200, 900, 400)).front;
     ~sfView.setSelection(0, [selection[0], selection[1] - selection[0]]);
     Synth(\SlicePlay, [\buf, ~buffer, \start, selection[0]-~compensation, \end, selection[1]-~compensation]);
 });
-
+}.fork(AppClock);
 })
 
-~buffer.play
+)
+
 
 /*
     TODO Removing onset markers...
     TODO zooming and resizing
 */
 
+{
+    inf.do { |i|
+        var index, start, end, dur;
+        index = ~scmir.onsetdata.size.rand;
+        start = (~scmir.onsetdata[index] * ~sfile.sampleRate)-~compensation;
+        end = ((~scmir.onsetdata[index+1] ? ~scmir.duration)  * ~sfile.sampleRate)-~compensation;
+        dur = (end - start) / ~sfile.sampleRate;
+        
+        dur.postln;
+        Synth(\SlicePlay, [\buf, ~buffer, \start, start, \end, end]);
+        (~buffer.duration/[8,16].choose).wait;
+        // (dur*~durs.choose).wait;
+    };
+}.fork;
 
+(60/)
 
-
+1 = 60
+0.5 = 60

@@ -105,7 +105,7 @@ T2A
 DC
 
 
-
+MP3
 Buffer
 
 getn
@@ -124,3 +124,5 @@ f = File.open("/Applications/SuperCollider/testfile2.data", "r")
 f.readAllString.postln;
 
 SCMIR
+
+Quarks.gui
