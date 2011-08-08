@@ -29,6 +29,7 @@ SynthDef(\SlicePlay) { |buf=0, out=0, start=0, end=44100, fade=0.01, rate=1, pan
     
     ~filepath = "/Applications/SuperCollider/sounds/clipperDrums.wav";
     ~buffer = Buffer.read(s, ~filepath);
+    
     ~scmir = SCMIRAudioFile(~filepath);
     ~sfile = SoundFile.new;
     ~sfile.openRead(~filepath);
@@ -97,7 +98,7 @@ w.view.decorator.bounds = Rect(~sfViewOffset, ~sfViewOffset, w.bounds.width-~sfV
 );
 
 
-~drawlines = {
+~drawlines = {|zoom=0|
     w.drawHook_({|v|
         // Re-position slider
         ~sliderView.bounds = ~sliderView.bounds.top_(~sfView.bounds.bottom + ~sfViewOffset);
@@ -108,7 +109,7 @@ w.view.decorator.bounds = Rect(~sfViewOffset, ~sfViewOffset, w.bounds.width-~sfV
         
         ~scmir.onsetdata.do { |item, i|
             // Compensate for latency of Onsets
-            var val = (((item * ~sfile.sampleRate) - ~compensation ) / ~sfile.sampleRate);
+            var val = (((item * zoom * ~sfile.sampleRate) - ~compensation ) / ~sfile.sampleRate);
             var x = ~sfViewOffset + ((val / ~scmir.duration) * ~sfView.bounds.width);
 
             Pen.moveTo(x@~sfViewOffset);
@@ -156,7 +157,17 @@ w.view.decorator.bounds = Rect(~sfViewOffset, ~sfViewOffset, w.bounds.width-~sfV
 })
 
 )
-~drawlines.();
+
+~zoom = 0;
+~zf = {|val|
+    ~sfView.zoom(val);
+    ~drawlines.(~sfile.numFrames/~sfView.viewFrames.ceil)
+}
+~zf.(8)
+~drawlines.(1);
+~sfView.setSelection(0, [0,~sfile.numFrames]);~sfView.zoomSelection(0);
+~sfView.setSelection(0, [0,0]);
+
 
 /*
     TODO Zooming
